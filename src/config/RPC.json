@@ -1,0 +1,42 @@
+[
+    {
+        "ramestta": {
+            "name": "Ramestta Mainnet",
+            "httpRpc": "https://blockchain2.ramestta.com",
+            "wssRpc": "",
+            "contractAddress": {
+                "rootRama20": "0x0"
+            }
+        }
+    },
+    {
+        "bsc": {
+            "name": "Bsc Mainnet",
+            "httpRpc": "https://bsc-pokt.nodies.app",
+            "wssRpc": "",
+            "contractAddress": {
+                "usdt": "0x55d398326f99059fF775485246999027B3197955"
+            }
+        }
+    },
+    {
+        "polygon": {
+            "name": "Polygon Mainnet",
+            "httpRpc": "https://light-multi-county.matic.quiknode.pro/5665b2b8459ee753fa111e94bb84c49f365b3cba/",
+            "wssRpc": "",
+            "contractAddress": {
+                "usdt": "0x55a5CC06801bBa4C030568f1A7ee1c753FDcbe36"
+            }
+        }
+    },
+    {
+        "pingaksha": {
+            "name": "Ramestta Testnet",
+            "httpRpc": "https://testnet.ramestta.com",
+            "wssRpc": "",
+            "contractAddress": {
+                "usdt": "0x0"
+            }
+        }
+    }
+]
