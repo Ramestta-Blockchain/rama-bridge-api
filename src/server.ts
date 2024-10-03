@@ -70,12 +70,12 @@ cron.schedule("*/60 * * * * *", async () => {
 })
 
 // cron job for network one run every 60 second
-cron.schedule("*/90 * * * * *", async () => {
-    const depositWatcherOne = new Sender(
-        "tron"
-    )
-    await depositWatcherOne.tronWorker("TRON-Sender-1",process.env.PRIVATE_KEY as string)
-})
+// cron.schedule("*/90 * * * * *", async () => {
+//     const depositWatcherOne = new Sender(
+//         "tron"
+//     )
+//     await depositWatcherOne.tronWorker("TRON-Sender-1",process.env.PRIVATE_KEY as string)
+// })
 
 }
 
