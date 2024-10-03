@@ -36,9 +36,10 @@ export const createTx = asyncMiddleware(
     async (req: Request, res: Response) => {
         try {
             const { fromChain, toChain, fromToken, toToken, receiverAddress, amountInWei } = req.body;
+console.log(fromChain,toChain,"666");
 
             if(fromChain===toChain){
-                return res.status(500).json({ success: true, message: "Both chain are not different" }); 
+                return res.status(400).json({ success: true, message: "Both chain are not different" }); 
             }
 
             // Get the current transaction count, which will act as the index for wallet generation

@@ -5,7 +5,7 @@
             "httpRpc": "https://blockchain2.ramestta.com",
             "wssRpc": "",
             "contractAddress": {
-                "rootRama20": "0x0"
+                "usdt": "0x2A32e2102467135E22Ca015277E397E9f3B85AF2"
             }
         }
     },

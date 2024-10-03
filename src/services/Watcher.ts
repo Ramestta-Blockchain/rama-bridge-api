@@ -81,9 +81,16 @@ export default class Watcher {
             })
         const client = network.getTronWeb3()
         // console.log("0x"+client.address.toChecksumAddress(client.address.toHex("TH6Gvm2TumHpeRLy96d7na3JECwdE1ss1g")).slice(2));
+        const now = new Date();
         if (dbData.length > 0) {
             Promise.all(
                 dbData.map(async (data: ITransaction) => {
+
+                    await transactionModel.updateOne(
+                        { _id: data._id, txStatus: 'pending', expiration: { $lt: now } },
+                        { $set: { txStatus: 'canceled' } }
+                    )
+                    
                     const events = await client.getEventResult(
                         network.getTronUsdt(),
                         {

@@ -32,15 +32,15 @@ cron.schedule("*/20 * * * * *", async () => {
 })
 
 // cron job for network one run every 40 second
-cron.schedule("*/40 * * * * *", async () => {
-    const depositWatcherOne = new Watcher(
-        "tron"
-    )
-    await depositWatcherOne.tronWorker("TRON-Watcher-1")
-})
+// cron.schedule("*/40 * * * * *", async () => {
+//     const depositWatcherOne = new Watcher(
+//         "tron"
+//     )
+//     await depositWatcherOne.tronWorker("TRON-Watcher-1")
+// })
 
 // cron job for network one run every 60 second
-cron.schedule("*/60 * * * * *", async () => {
+cron.schedule("*/40 * * * * *", async () => {
     const depositWatcherOne = new Watcher(
         "ramestta"
     )
