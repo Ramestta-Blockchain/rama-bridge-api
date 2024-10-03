@@ -36,7 +36,7 @@ export const createTx = asyncMiddleware(
     async (req: Request, res: Response) => {
         try {
             const { fromChain, toChain, fromToken, toToken, receiverAddress, amountInWei } = req.body;
-console.log(fromChain,toChain,"666");
+
 
             if(fromChain===toChain){
                 return res.status(400).json({ success: true, message: "Both chain are not different" }); 
@@ -45,13 +45,14 @@ console.log(fromChain,toChain,"666");
             // Get the current transaction count, which will act as the index for wallet generation
             // Get the count of transactions based on the fromChain condition
             const transactionCount = await transactionModel.countDocuments({ fromChain });
-            console.log({ transactionCount });
+
 
             // Auto-generate depositAddress
             const walletService = WalletFactory.createWalletService(fromChain);
             const depositAddress =  walletService.generateDepositAddress(transactionCount, fromChain);
 
-            const calculateAmount = Number(amountInWei)  // will add networkFee and serviceFee later
+            const serviceFee = (Number(amountInWei))*0.0025 //0 .25%
+            const calculateAmount = Number(amountInWei)-serviceFee  // will add networkFee and serviceFee later
             const transaction = new transactionModel({
                 fromChain,
                 toChain,
@@ -62,7 +63,7 @@ console.log(fromChain,toChain,"666");
                 fromAmountInWei: amountInWei,
                 toAmountInWei: calculateAmount.toString(),
                 // exchangeRate,
-                // serviceFee,
+                serviceFee,
                 // transactionCost,
                 expiration: Date.now() + 15 * 60 * 1000,
             });
