@@ -34,6 +34,19 @@ export default class Sender {
         if (dbData.length > 0) {
             Promise.all(
                 dbData.map(async (data: ITransaction) => {
+                    const gas = await publicClient.estimateContractGas(
+                        {
+                            address: network.getRama20Address(),
+                            abi: erc20Abi,
+                            functionName: "transfer",
+                            args: [
+                                data.receiverAddress as Address,
+                                BigInt(data.toAmountInWei),
+            
+                            ],
+                            account
+                        }
+                    ) 
                     const { request } = await publicClient.simulateContract({
                         address: network.getRama20Address(),
                         abi: erc20Abi,
@@ -43,6 +56,8 @@ export default class Sender {
                             BigInt(data.toAmountInWei),
 
                         ],
+                        gas: gas,
+
                         account
                     })
                     
