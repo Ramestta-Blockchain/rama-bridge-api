@@ -4,6 +4,8 @@ import { TronWalletService } from "./TronWallet";
 import { EVMWalletService } from "./EvmWallet";
 import { Address, erc20Abi } from "viem";
 import transactionModel, { ITransaction } from "../models/transactionModel";
+import { privateKeyToAccount } from "viem/accounts";
+
 
 export default class Sender {
 
@@ -13,6 +15,7 @@ export default class Sender {
         this.chain = chain
     }
     public async evmWorker(title: string,privateKey?:Address) {
+        
         console.info(title);
 
         const network = WalletFactory.createWalletService(this.chain,privateKey) as EVMWalletService;
@@ -20,15 +23,17 @@ export default class Sender {
             {
                 $and: [
                     { txStatus: "completed" },
+                    {settlementStatus:"pending"},
                     { toChain: this.chain }
                 ]
             })
+            
         const walletClient = network.getWalletClient()
         const publicClient = network.getPublicClient()
+        const account = privateKeyToAccount(privateKey as Address)
         if (dbData.length > 0) {
-            await Promise.all(
+            Promise.all(
                 dbData.map(async (data: ITransaction) => {
-
                     const { request } = await publicClient.simulateContract({
                         address: network.getRama20Address(),
                         abi: erc20Abi,
@@ -38,14 +43,14 @@ export default class Sender {
                             BigInt(data.toAmountInWei),
 
                         ],
-                        account: network.getAccount(),
+                        account
                     })
+                    
                     const txHash = await walletClient.writeContract(request)
-
-                    const tx = await publicClient.getTransactionReceipt({ hash: txHash })
+                    const tx = await publicClient.waitForTransactionReceipt({ hash: txHash,confirmations:4})
                     const block = await publicClient.getBlock(tx.blockHash as any);
                     const timestamp = block.timestamp;
-                    if (tx.status == "success") {
+                    if (tx.status === "success") {
                         const updateData = {
                             settlementStatus: "completed",
                             outTxHash: txHash,

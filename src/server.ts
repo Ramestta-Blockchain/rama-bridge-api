@@ -62,7 +62,7 @@ cron.schedule("*/30 * * * * *", async () => {
 })
 
 // cron job for network one run every 40 second
-cron.schedule("*/60 * * * * *", async () => {
+cron.schedule("*/75 * * * * *", async () => {
     const depositWatcherOne = new Sender(
         "bsc"
     )

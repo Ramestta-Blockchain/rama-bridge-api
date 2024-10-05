@@ -21,7 +21,10 @@ type RpcConfig=[
 ]
 const config: RpcConfig = JSON.parse(JSON.stringify(rpc))
 
-
+const chainToChainId:Record<string,number>={
+    "bsc": 56,
+    "ramestta": 1370,
+}
 
 export class EVMWalletService  {
     private readonly evmPublicClient: PublicClient
@@ -39,7 +42,8 @@ export class EVMWalletService  {
         http(data[chain].httpRpc) : 
         webSocket(data[chain].wssRpc),
         chain: {
-            id: Number(chain),
+            id: chainToChainId[chain],
+            
         } as Chain
     })
     this.evmWalletClient = createWalletClient({
@@ -47,7 +51,7 @@ export class EVMWalletService  {
             http(data[chain].httpRpc) : 
             webSocket(data[chain].wssRpc),
             chain:{
-                id: Number(chain) ,
+                id: chainToChainId[chain] ,
             } as Chain,
         })
         if(privateKey) {
