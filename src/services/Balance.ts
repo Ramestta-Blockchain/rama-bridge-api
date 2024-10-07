@@ -2,7 +2,7 @@ import { updateTx } from "../repositories";
 import { WalletFactory } from "./WalletFactory";
 import { TronWalletService } from "./TronWallet";
 import { EVMWalletService, chainToChainId } from "./EvmWallet";
-import { Address, Chain, erc20Abi, parseGwei } from "viem";
+import { Address, Chain, erc20Abi, formatGwei, parseGwei } from "viem";
 import transactionModel, { ITransaction } from "../models/transactionModel";
 import { privateKeyToAccount } from "viem/accounts";
 import { getWalletFile } from "../utils";
@@ -32,9 +32,7 @@ export default class Balance {
         const walletClient = network.getWalletClient()
         const publicClient = network.getPublicClient()
         const coldWalletAccount = network.getAccount()
-        console.log("completed length", dbData.length);
-        console.log("USDT", network.getRama20Address());
-
+        console.log("completed data length", dbData.length);
 
         let wallet = getWalletFile(this.chain)[0]
 
@@ -54,6 +52,9 @@ export default class Balance {
                         })
                     } catch (error) {
 
+                        console.log(error);
+                        
+
                     }
                     console.log(`Token Balance of ${data.depositAddress}: ${balance}`);
 
@@ -61,8 +62,7 @@ export default class Balance {
 
                     if (Number(balance) > 0 && walletInfo) {
                         const account = privateKeyToAccount(`0x${walletInfo.privateKey}`)
-                        console.log(walletInfo.address, ":", data.depositAddress);
-
+                        const gasPrice= await publicClient.getGasPrice()
                         const gas = await publicClient.estimateContractGas(
                             {
                                 address: network.getRama20Address(),
@@ -77,7 +77,8 @@ export default class Balance {
                                 account:account.address
                             }
                         )
-                        console.log({ gas });
+                        const txCost=Number(gas) * Number(formatGwei(gasPrice))
+                        console.log({ gas,gasPrice,txCost });
 
                         const coinBalance = await publicClient.getBalance({
                             address: walletInfo.address as Address,
@@ -87,7 +88,7 @@ export default class Balance {
                         console.log(`Coin Balance: ${coinBalance}`);
 
 
-                        if (Number(coinBalance) < Number(parseGwei(gas.toString()))) {
+                        if (Number(coinBalance) < Number(parseGwei(txCost.toString()))) {
                             const hash = await walletClient.sendTransaction({
                                 account: coldWalletAccount,
                                 chain: {
@@ -95,7 +96,7 @@ export default class Balance {
 
                                 } as Chain,
                                 to: walletInfo.address as Address,
-                                value: parseGwei(gas.toString()) - coinBalance,
+                                value: parseGwei(txCost.toString()) - coinBalance,
                             })
 
                             console.log(`Transfer COIN for gas fee : ${hash}`);
@@ -112,13 +113,14 @@ export default class Balance {
     
                                 ],
                                 gas: gas,
+                                gasPrice: gasPrice,
                                 blockTag: 'latest',
                                 account
                             })
-    
                             const txHash = await walletClient.writeContract(request)
                             console.info(`Transfer Token: ${txHash}`);
                         } catch (error) {
+                            console.log(error);
                             
                         }
                         
