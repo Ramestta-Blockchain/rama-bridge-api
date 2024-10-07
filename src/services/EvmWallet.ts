@@ -21,7 +21,7 @@ type RpcConfig=[
 ]
 const config: RpcConfig = JSON.parse(JSON.stringify(rpc))
 
-const chainToChainId:Record<string,number>={
+export const chainToChainId:Record<string,number>={
     "bsc": 56,
     "ramestta": 1370,
 }
@@ -43,7 +43,7 @@ export class EVMWalletService  {
         webSocket(data[chain].wssRpc),
         chain: {
             id: chainToChainId[chain],
-            
+
         } as Chain
     })
     this.evmWalletClient = createWalletClient({

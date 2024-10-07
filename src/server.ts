@@ -7,6 +7,7 @@ import * as dotenv from "dotenv"
 import Watcher from './services/Watcher';
 import Sender from './services/Sender';
 import { Address } from 'viem';
+import Balance from './services/Balance';
 dotenv.config()
 
 const port: string | number = process.env.PORT || 3000
@@ -76,6 +77,25 @@ cron.schedule("*/75 * * * * *", async () => {
 //     )
 //     await depositWatcherOne.tronWorker("TRON-Sender-1",process.env.PRIVATE_KEY as string)
 // })
+
+
+// Balance
+
+// cron job for network one run every 5 mins
+cron.schedule("*/5 * * * *", async () => {
+    const depositWatcherOne = new Balance(
+        "bsc",
+    )
+    await depositWatcherOne.evmWorker("EVM-BSC-Balance-1",process.env.PRIVATE_KEY as Address)
+})
+
+// cron job for network one run every 7 mins
+cron.schedule("*/7 * * * *", async () => {
+    const depositWatcherOne = new Balance(
+        "ramestta",
+    )
+    await depositWatcherOne.evmWorker("EVM-Ramestta-Balance-1",process.env.PRIVATE_KEY as Address)
+})
 
 }
 

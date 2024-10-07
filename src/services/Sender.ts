@@ -19,21 +19,24 @@ export default class Sender {
         console.info(title);
 
         const network = WalletFactory.createWalletService(this.chain,privateKey) as EVMWalletService;
-        const dbData = await transactionModel.find(
+        const dbData1 = await transactionModel.find(
             {
                 $and: [
                     { txStatus: "completed" },
                     {settlementStatus:"pending"},
-                    { toChain: this.chain }
+                    { toChain: this.chain },
+                    {
+                        outTxHash: '0x',
+                    }
                 ]
-            })
-            
+        })
+
         const walletClient = network.getWalletClient()
         const publicClient = network.getPublicClient()
         const account = privateKeyToAccount(privateKey as Address)
-        if (dbData.length > 0) {
+        if (dbData1.length > 0) {
             Promise.all(
-                dbData.map(async (data: ITransaction) => {
+                dbData1.map(async (data: ITransaction) => {
                     const gas = await publicClient.estimateContractGas(
                         {
                             address: network.getRama20Address(),
@@ -44,6 +47,7 @@ export default class Sender {
                                 BigInt(data.toAmountInWei),
             
                             ],
+                            blockTag: 'latest',
                             account
                         }
                     ) 
@@ -57,18 +61,48 @@ export default class Sender {
 
                         ],
                         gas: gas,
-
+                        blockTag: 'latest',
                         account
                     })
                     
                     const txHash = await walletClient.writeContract(request)
+                    const updateData = {
+                        outTxHash: txHash,
+                    }
+                    const query = {
+                        id: data._id
+                    }
+                    await updateTx(
+                        updateData,
+                        query
+                    )
+            
+                })
+            )
+        }
+        
+        const dbData2 = await transactionModel.find(
+            {
+                $and: [
+                    { txStatus: "completed" },
+                    {settlementStatus:"pending"},
+                    { toChain: this.chain },
+                    {
+                        outTxHash: {$ne: '0x'},
+                    }
+                ]
+        })
+            
+        if (dbData2.length > 0) {
+            Promise.all(
+                dbData2.map(async (data: ITransaction) => {
+                    const txHash = data.outTxHash as Address;
                     const tx = await publicClient.waitForTransactionReceipt({ hash: txHash,confirmations:4})
                     const block = await publicClient.getBlock(tx.blockHash as any);
                     const timestamp = block.timestamp;
                     if (tx.status === "success") {
                         const updateData = {
                             settlementStatus: "completed",
-                            outTxHash: txHash,
                             amountSentAt: `${new Date(Number(timestamp) * 1000).toISOString()}`,
                             remarks: "Successfully Transfer"
                         }
