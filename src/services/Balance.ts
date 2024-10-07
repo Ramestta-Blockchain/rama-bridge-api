@@ -2,7 +2,7 @@ import { updateTx } from "../repositories";
 import { WalletFactory } from "./WalletFactory";
 import { TronWalletService } from "./TronWallet";
 import { EVMWalletService, chainToChainId } from "./EvmWallet";
-import { Address, Chain, erc20Abi, parseGwei, parseUnits } from "viem";
+import { Address, Chain, erc20Abi, parseGwei } from "viem";
 import transactionModel, { ITransaction } from "../models/transactionModel";
 import { privateKeyToAccount } from "viem/accounts";
 import { getWalletFile } from "../utils";
