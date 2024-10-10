@@ -39,8 +39,8 @@ export default class Balance {
         if (dbData.length > 0) {
             Promise.all(
                 dbData.map(async (data: ITransaction) => {
-                    let balance
                     try {
+                        let balance
                         balance = await publicClient.readContract({
                             address: network.getRama20Address(),
                             abi: erc20Abi,
@@ -50,59 +50,53 @@ export default class Balance {
                             ],
                             blockTag: 'latest'
                         })
-                    } catch (error) {
 
-                        console.log(error);
-                        
+                        console.log(`Token Balance of ${data.depositAddress}: ${balance}`);
 
-                    }
-                    console.log(`Token Balance of ${data.depositAddress}: ${balance}`);
+                        const walletInfo = wallet.accounts.find((item) => item.address === data.depositAddress)
 
-                    const walletInfo = wallet.accounts.find((item) => item.address === data.depositAddress)
+                        if (Number(balance) > 0 && walletInfo) {
+                            const account = privateKeyToAccount(`0x${walletInfo.privateKey}`)
+                            const gasPrice = await publicClient.getGasPrice()
+                            const gas = await publicClient.estimateContractGas(
+                                {
+                                    address: network.getRama20Address(),
+                                    abi: erc20Abi,
+                                    functionName: "transfer",
+                                    args: [
+                                        coldWalletAccount.address,
+                                        balance as bigint,
 
-                    if (Number(balance) > 0 && walletInfo) {
-                        const account = privateKeyToAccount(`0x${walletInfo.privateKey}`)
-                        const gasPrice= await publicClient.getGasPrice()
-                        const gas = await publicClient.estimateContractGas(
-                            {
-                                address: network.getRama20Address(),
-                                abi: erc20Abi,
-                                functionName: "transfer",
-                                args: [
-                                    coldWalletAccount.address,
-                                    balance as bigint,
+                                    ],
+                                    blockTag: "latest",
+                                    account: account.address
+                                }
+                            )
+                            const txCost = Number(gas) * Number(formatGwei(gasPrice))
+                            console.log({ gas, gasPrice, txCost });
 
-                                ],
-                                blockTag: "latest",
-                                account:account.address
-                            }
-                        )
-                        const txCost=Number(gas) * Number(formatGwei(gasPrice))
-                        console.log({ gas,gasPrice,txCost });
-
-                        const coinBalance = await publicClient.getBalance({
-                            address: walletInfo.address as Address,
-                            blockTag: 'latest'
-                        })
-
-                        console.log(`Coin Balance: ${coinBalance}`);
-
-
-                        if (Number(coinBalance) < Number(parseGwei(txCost.toString()))) {
-                            const hash = await walletClient.sendTransaction({
-                                account: coldWalletAccount,
-                                chain: {
-                                    id: chainToChainId[this.chain],
-
-                                } as Chain,
-                                to: walletInfo.address as Address,
-                                value: parseGwei(txCost.toString()) - coinBalance,
+                            const coinBalance = await publicClient.getBalance({
+                                address: walletInfo.address as Address,
+                                blockTag: 'latest'
                             })
 
-                            console.log(`Transfer COIN for gas fee : ${hash}`);
-                        }
+                            console.log(`Coin Balance: ${coinBalance}`);
 
-                        try {
+
+                            if (Number(coinBalance) < Number(parseGwei(txCost.toString()))) {
+                                const hash = await walletClient.sendTransaction({
+                                    account: coldWalletAccount,
+                                    chain: {
+                                        id: chainToChainId[this.chain],
+
+                                    } as Chain,
+                                    to: walletInfo.address as Address,
+                                    value: parseGwei(txCost.toString()) - coinBalance,
+                                })
+
+                                console.log(`Transfer COIN for gas fee : ${hash}`);
+                            }
+
                             const { request } = await publicClient.simulateContract({
                                 address: network.getRama20Address(),
                                 abi: erc20Abi,
@@ -110,7 +104,7 @@ export default class Balance {
                                 args: [
                                     coldWalletAccount.address,
                                     balance as bigint,
-    
+
                                 ],
                                 gas: gas,
                                 gasPrice: gasPrice,
@@ -119,13 +113,12 @@ export default class Balance {
                             })
                             const txHash = await walletClient.writeContract(request)
                             console.info(`Transfer Token: ${txHash}`);
-                        } catch (error) {
-                            console.log(error);
-                            
-                        }
-                        
-                    }
 
+                        }
+                    } catch (error) {
+                        console.log(error);
+
+                    }
                 })
             )
         }
