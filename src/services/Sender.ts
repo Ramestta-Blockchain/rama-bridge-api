@@ -96,36 +96,41 @@ export default class Sender {
         if (dbData2.length > 0) {
             Promise.all(
                 dbData2.map(async (data: ITransaction) => {
-                    const txHash = data.outTxHash as Address;
-                    const tx = await publicClient.waitForTransactionReceipt({ hash: txHash,confirmations:4})
-                    const block = await publicClient.getBlock(tx.blockHash as any);
-                    const timestamp = block.timestamp;
-                    if (tx.status === "success") {
-                        const updateData = {
-                            settlementStatus: "completed",
-                            amountSentAt: `${new Date(Number(timestamp) * 1000).toISOString()}`,
-                            remarks: "Successfully Transfer"
+                    try {
+                        const txHash = data.outTxHash as Address;
+                        const tx = await publicClient.waitForTransactionReceipt({ hash: txHash,confirmations:4})
+                        const block = await publicClient.getBlock(tx.blockHash as any);
+                        const timestamp = block.timestamp;
+                        if (tx.status === "success") {
+                            const updateData = {
+                                settlementStatus: "completed",
+                                amountSentAt: `${new Date(Number(timestamp) * 1000).toISOString()}`,
+                                remarks: "Successfully Transfer"
+                            }
+                            const query = {
+                                id: data._id
+                            }
+                            await updateTx(
+                                updateData,
+                                query
+                            )
+                        } else {
+                            const updateData = {
+                                remarks: "Something went wrong "
+                            }
+                            const query = {
+                                id: data._id
+                            }
+                            await updateTx(
+                                updateData,
+                                query
+                            )
+                            console.log("failed");
+    
                         }
-                        const query = {
-                            id: data._id
-                        }
-                        await updateTx(
-                            updateData,
-                            query
-                        )
-                    } else {
-                        const updateData = {
-                            remarks: "Something went wrong "
-                        }
-                        const query = {
-                            id: data._id
-                        }
-                        await updateTx(
-                            updateData,
-                            query
-                        )
-                        console.log("failed");
-
+                    } catch (error) {
+                        console.log(error);
+                        
                     }
 
                 })
